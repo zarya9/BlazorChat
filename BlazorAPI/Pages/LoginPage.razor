@@ -181,7 +181,7 @@
                 <ValidationMessage For="@(() => loginRequest.Password)" />
             </div>
 
-            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+            <button type="submit" class="btn btn-primary" disabled="@isLoading" >
                 @if (isLoading)
                 {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
