@@ -84,10 +84,10 @@ namespace BlazorAPI.Data.Fluxor.Auth
         public async Task HandleSaveNavigation(SaveNavigationAction action, IDispatcher dispatcher)
         {
             await _localStorage.SetItemAsync("last_url", action.Url);
-            dispatcher.Dispatch(new UpdateLastUrlAction(
-                Url: action.Url,
-                Timestamp: DateTime.Now
-            ));
+            dispatcher.Dispatch(new UpdateLastUrlAction { 
+                Url = action.Url,
+                Timestamp = DateTime.Now
+            });
             Console.WriteLine($"Сохранен URL: {action.Url} в {DateTime.Now}");
         }
 
@@ -112,6 +112,15 @@ namespace BlazorAPI.Data.Fluxor.Auth
                     Token = token,
                     Role = role
                 });
+            }
+        }
+        [EffectMethod]
+        public async Task HandleNavigation(NavigationAction action, IDispatcher dispatcher)
+        {
+            if (!action.Url.Contains("/login") && !action.Url.Contains("/auth"))
+            {
+                await _localStorage.SetItemAsync("last_url", action.Url);
+                Console.WriteLine($"Сохранен URL в LocalStorage: {action.Url}");
             }
         }
     }

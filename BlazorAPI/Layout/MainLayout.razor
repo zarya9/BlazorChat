@@ -13,18 +13,14 @@
 </div>
 
 @code {
-    protected override void OnInitialized()
+   protected override void OnInitialized()
     {
         Navigation.LocationChanged += (_, args) =>
         {
-            // Используем правильный конструктор
-            Dispatcher.Dispatch(new UpdateLastUrlAction(
-                Url: args.Location,
-                Timestamp: DateTime.Now
-            ));
-            
-            // Дополнительно сохраняем через отдельное действие
-            Dispatcher.Dispatch(new SaveNavigationAction(args.Location));
+            if (!args.Location.Contains("login"))
+            {
+                Dispatcher.Dispatch(new NavigationAction(args.Location));
+            }
         };
     }
 }

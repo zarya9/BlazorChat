@@ -15,6 +15,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.IdentityModel.Tokens.Jwt
 @using BlazorAPI.Data.Fluxor.Auth
+@using System.Security.Claims
 
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
@@ -46,29 +47,32 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (!isInitialized)
+        // Сначала проверяем сохраненный URL
+        var lastUrl = await LocalStorage.GetItemAsync<string>("last_url");
+        var token = await LocalStorage.GetItemAsync<string>("authToken");
+
+        if (!string.IsNullOrEmpty(token) && IsTokenValid(token))
         {
-            Dispatcher.Dispatch(new LoadAuthStateAction());
-            
-            var token = await LocalStorage.GetItemAsync<string>("authToken");
-            if (!string.IsNullOrEmpty(token) && IsTokenValid(token))
+            // Если есть сохраненный URL - используем его
+            if (!string.IsNullOrEmpty(lastUrl))
             {
-                var role = GetUserRoleFromToken(token);
-                var redirectPath = await LocalStorage.GetItemAsync<string>("last_url") ?? 
-                                  (role == "Администратор" ? "/users" : "/profile");
-                
-                Console.WriteLine($"Перенаправление на: {redirectPath}");
-                Navigation.NavigateTo(redirectPath);
+                Console.WriteLine($"Восстановление последнего URL: {lastUrl}");
+                Navigation.NavigateTo(lastUrl);
             }
             else
             {
-                Navigation.NavigateTo("/login");
+                // Иначе - редирект по роли
+                var role = GetUserRoleFromToken(token);
+                var defaultPath = role == "Администратор" ? "/users" : "/profile";
+                Console.WriteLine($"Перенаправление по роли: {defaultPath}");
+                Navigation.NavigateTo(defaultPath);
             }
-
-            isInitialized = true;
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
         }
     }
-
     private bool IsTokenValid(string token)
     {
         try
