@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Components.Authorization;
 using BlazorAPI.ApiRequest;
 using BlazorAPI.Hubs;
 using Fluxor;
-using Fluxor.Blazor.Web.ReduxDevTools;
+using Fluxor.Blazor.Persistence;
 using BlazorAPI;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.RootComponents.Add<App>("#app");
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor()
     .AddCircuitOptions(options =>
@@ -24,14 +24,15 @@ builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddFluxor(options =>
 {
-    options.ScanAssemblies(typeof(Program).Assembly);
-    options.UseReduxDevTools();
-    options.UseRouting();
+    options.ScanAssemblies(typeof(Program).Assembly)
+    .UseRouting()
+    .UsePersistence();
 });
 builder.Services.AddFluxorConfig();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<MovieService>();
+builder.Services.AddScoped<IPersistenceMiddleware, LocalStorageMiddleware>();
 
 builder.Services.AddHttpClient("UnauthorizedClient", client =>
 {
