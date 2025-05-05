@@ -1,7 +1,10 @@
 ﻿using Blazored.LocalStorage;
 using Fluxor;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using static BlazorAPI.Pages.LoginPage;
 
 namespace BlazorAPI.Data.Fluxor.Auth
 {
@@ -9,11 +12,19 @@ namespace BlazorAPI.Data.Fluxor.Auth
     {
         private readonly HttpClient _http;
         private readonly ILocalStorageService _localStorage;
+        private readonly NavigationManager _navigation;
+        private readonly AuthenticationStateProvider _authProvider;
 
-        public AuthEffects(HttpClient http, ILocalStorageService localStorage)
+        public AuthEffects(
+            HttpClient http,
+            ILocalStorageService localStorage,
+            NavigationManager navigation,
+            AuthenticationStateProvider authProvider)
         {
             _http = http;
             _localStorage = localStorage;
+            _navigation = navigation;
+            _authProvider = authProvider;
         }
 
         [EffectMethod]
@@ -21,31 +32,53 @@ namespace BlazorAPI.Data.Fluxor.Auth
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("/api/UserLogin/Login", new
+                var response = await _http.PostAsJsonAsync("api/UserLogin/Login", new
                 {
                     action.Email,
                     action.Password
                 });
 
-                if (!response.IsSuccessStatusCode)
+                if (response.IsSuccessStatusCode)
                 {
-                    dispatcher.Dispatch(new LoginFailedAction { Error = "Ошибка входа" });
-                    return;
+                    var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                    await _localStorage.SetItemAsync("authToken", result.Token);
+                    await (_authProvider as CustomAuthenticationStateProvider).NotifyUserAuthentication(result.Token);
+
+                    dispatcher.Dispatch(new LoginSuccessAction
+                    {
+                        Token = result.Token,
+                        Role = GetRoleFromToken(result.Token)
+                    });
+
+                    _navigation.NavigateTo(GetRedirectUrl(result.Token));
                 }
-
-                var token = await response.Content.ReadAsStringAsync();
-                var handler = new JwtSecurityTokenHandler();
-                var jwt = handler.ReadJwtToken(token);
-
-                var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-
-                await _localStorage.SetItemAsync("authToken", token);
-                dispatcher.Dispatch(new LoginSuccessAction { Token = token, Role = role });
+                else
+                {
+                    dispatcher.Dispatch(new LoginFailedAction
+                    {
+                        Error = await response.Content.ReadAsStringAsync()
+                    });
+                }
             }
             catch (Exception ex)
             {
-                dispatcher.Dispatch(new LoginFailedAction { Error = ex.Message });
+                dispatcher.Dispatch(new LoginFailedAction
+                {
+                    Error = ex.Message
+                });
             }
+        }
+
+        private string GetRoleFromToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            return jwt.Claims.First(c => c.Type == ClaimTypes.Role).Value;
+        }
+
+        private string GetRedirectUrl(string token)
+        {
+            return GetRoleFromToken(token) == "Admin" ? "/users" : "/profile";
         }
     }
 }

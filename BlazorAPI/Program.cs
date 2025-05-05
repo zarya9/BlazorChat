@@ -21,13 +21,14 @@ builder.Services.AddSignalR(options =>
 });
 
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddFluxorConfig();
+
 builder.Services.AddFluxor(options =>
 {
     options.ScanAssemblies(typeof(Program).Assembly);
     options.UseReduxDevTools();
     options.UseRouting();
 });
+builder.Services.AddFluxorConfig();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<MovieService>();

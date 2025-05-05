@@ -5,7 +5,9 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotificationService NotificationService
 @inject IDispatcher Dispatcher
+@inject IState<AuthState> AuthState
 @using BlazorAPI.ApiRequest.Model
+@using BlazorAPI.Data.Fluxor.Auth
 @using Fluxor
 @using Microsoft.AspNetCore.Components.Routing
 @using Blazored.LocalStorage
@@ -231,9 +233,12 @@
 
     protected override void OnInitialized()
     {
-        NotificationService.OnNotificationAdded += HandleNotificationAdded;
+        base.OnInitialized();
+        if (AuthState.Value.IsAuthenticated)
+        {
+            Navigation.NavigateTo(AuthState.Value.Role == "Admin" ? "/users" : "/profile");
+        }
     }
-
     private void HandleNotificationAdded(NotificationService.NotificationModel notification)
     {
         Notifications.Add(notification);
@@ -280,26 +285,11 @@
     @code {
         private async Task HandleLogin()
         {
-            isLoading = true;
-            errorMessage = null;
-
-            try
+            Dispatcher.Dispatch(new LoginAction
             {
-                Dispatcher.Dispatch(new Logins
-                {
-                    Email = loginRequest.Email,
-                    Password = loginRequest.Password
-                });
-            }
-            catch (Exception ex)
-            {
-                errorMessage = "Произошла ошибка при авторизации.";
-                Console.WriteLine(ex.ToString());
-            }
-            finally
-            {
-                isLoading = false;
-            }
+                Email = loginRequest.Email,
+                Password = loginRequest.Password
+            });
         }
     }
     private bool IsTokenValid(string token)
