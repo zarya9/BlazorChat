@@ -1,5 +1,6 @@
 ﻿@using System.Net.Http
 @using System.Net.Http.Json
+@using Fluxor.Blazor.Web
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
@@ -35,6 +36,7 @@
     </Router>
 </CascadingAuthenticationState>
 
+<StoreInitializer />
 @code {
     private bool isInitialized = false;
 
@@ -88,7 +90,6 @@
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
 
-            // Используем стандартный ключ для роли
             var role = jwtToken.Claims
                 .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
 
@@ -96,7 +97,6 @@
         }
         catch
         {
-            // В случае ошибки возвращаем null
             return null;
         }
     }
