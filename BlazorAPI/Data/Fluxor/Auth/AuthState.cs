@@ -7,6 +7,7 @@
         public string Token { get; init; }
         public string Error { get; init; }
         public string Role { get; init; }
+        public string LastVisitedPath { get; init; }
 
         public static AuthState Empty => new()
         {
