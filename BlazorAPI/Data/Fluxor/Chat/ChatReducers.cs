@@ -23,5 +23,9 @@ namespace BlazorAPI.Data.Fluxor.Chat
             ChatState state,
             UpdateCurrentMessageAction action
         ) => state with { CurrentMessage = action.Text };
+
+        [ReducerMethod]
+        public static ChatState OnLoadMessagesFailed(ChatState state, LoadMessagesFailedAction action)
+    => state with { Error = action.Error, IsLoading = false };
     }
 }

@@ -35,15 +35,15 @@
       },
       "distributionName": ""
     },
-  //  "http2": { // Новый профиль
-  //    "commandName": "Project",
-  //    "launchBrowser": true,
-  //    "environmentVariables": {
-  //      "ASPNETCORE_ENVIRONMENT": "Development"
-  //    },
-  //    "dotnetRunMessages": true,
-  //    "applicationUrl": "http://localhost:5131" 
-  //  }
+    "Профиль 1": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5130"
+    }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "iisSettings": {
