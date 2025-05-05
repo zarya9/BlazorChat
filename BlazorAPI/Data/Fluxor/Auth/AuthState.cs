@@ -11,6 +11,7 @@ namespace BlazorAPI.Data.Fluxor.Auth
         public string Role { get; init; }
         public string Error { get; init; }
         public string LastVisitedUrl { get; init; }
+        public DateTime LastUpdated { get; init; }
 
         public static AuthState Empty => new()
         {
@@ -19,7 +20,8 @@ namespace BlazorAPI.Data.Fluxor.Auth
             Token = null,
             Role = null,
             Error = null,
-            LastVisitedUrl = "/"
+            LastVisitedUrl = "/",
+            LastUpdated = DateTime.MinValue
         };
     }
 }

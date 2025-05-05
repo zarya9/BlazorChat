@@ -1,8 +1,10 @@
 ﻿@inherits LayoutComponentBase
+@using BlazorAPI.Data.Fluxor.Auth
+@using Fluxor
+@inject IDispatcher Dispatcher
+@inject NavigationManager Navigation
 
 <div class="page">
-    
-
     <main>
         <article class="content px-4">
             @Body
@@ -10,3 +12,19 @@
     </main>
 </div>
 
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += (_, args) =>
+        {
+            // Используем правильный конструктор
+            Dispatcher.Dispatch(new UpdateLastUrlAction(
+                Url: args.Location,
+                Timestamp: DateTime.Now
+            ));
+            
+            // Дополнительно сохраняем через отдельное действие
+            Dispatcher.Dispatch(new SaveNavigationAction(args.Location));
+        };
+    }
+}

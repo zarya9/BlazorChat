@@ -80,5 +80,39 @@ namespace BlazorAPI.Data.Fluxor.Auth
         {
             return GetRoleFromToken(token) == "Admin" ? "/users" : "/profile";
         }
+        [EffectMethod]
+        public async Task HandleSaveNavigation(SaveNavigationAction action, IDispatcher dispatcher)
+        {
+            await _localStorage.SetItemAsync("last_url", action.Url);
+            dispatcher.Dispatch(new UpdateLastUrlAction(
+                Url: action.Url,
+                Timestamp: DateTime.Now
+            ));
+            Console.WriteLine($"Сохранен URL: {action.Url} в {DateTime.Now}");
+        }
+
+        [EffectMethod]
+        public async Task HandleUpdateLastUrl(UpdateLastUrlAction action, IDispatcher dispatcher)
+        {
+            Console.WriteLine($"Обновлен URL в состоянии: {action.Url}");
+        }
+
+        [EffectMethod]
+        public async Task HandleLoadAuthState(LoadAuthStateAction action, IDispatcher dispatcher)
+        {
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+            if (!string.IsNullOrEmpty(token))
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(token);
+                var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+                dispatcher.Dispatch(new LoginSuccessAction
+                {
+                    Token = token,
+                    Role = role
+                });
+            }
+        }
     }
 }

@@ -6,5 +6,7 @@
 
     public class LogoutAction;
     public class LoadAuthStateAction; // Для загрузки состояния при старте
-    public class UpdateLastUrlAction { public string Url; }
+    public class UpdateLastUrlAction ( string Url, DateTime Timestamp );
+    public record SaveNavigationAction(string Url);
+
 }

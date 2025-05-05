@@ -29,6 +29,6 @@ namespace BlazorAPI.Data.Fluxor.Auth
 
         [ReducerMethod]
         public static AuthState OnUpdateUrl(AuthState state, UpdateLastUrlAction action)
-            => state with { LastVisitedUrl = action.Url };
+            => state with { LastVisitedUrl = action.Url, LastUpdated = action.Timestamp };
     }
 }

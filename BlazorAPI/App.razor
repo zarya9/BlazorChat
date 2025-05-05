@@ -1,5 +1,6 @@
 ﻿@using System.Net.Http
 @using System.Net.Http.Json
+@using Fluxor
 @using Fluxor.Blazor.Web
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
@@ -13,9 +14,12 @@
 @using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.IdentityModel.Tokens.Jwt
+@using BlazorAPI.Data.Fluxor.Auth
 
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
+@inject IDispatcher Dispatcher
+@inject IState<AuthState> AuthState
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
@@ -44,20 +48,17 @@
     {
         if (!isInitialized)
         {
+            Dispatcher.Dispatch(new LoadAuthStateAction());
+            
             var token = await LocalStorage.GetItemAsync<string>("authToken");
-
             if (!string.IsNullOrEmpty(token) && IsTokenValid(token))
             {
                 var role = GetUserRoleFromToken(token);
-
-                if (role == "Администратор")
-                {
-                    Navigation.NavigateTo("/users"); // Страница для администратора
-                }
-                else
-                {
-                    Navigation.NavigateTo("/profile"); // Страница для обычного пользователя
-                }
+                var redirectPath = await LocalStorage.GetItemAsync<string>("last_url") ?? 
+                                  (role == "Администратор" ? "/users" : "/profile");
+                
+                Console.WriteLine($"Перенаправление на: {redirectPath}");
+                Navigation.NavigateTo(redirectPath);
             }
             else
             {
@@ -74,8 +75,7 @@
         {
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
-            var expirationDate = jwtToken.ValidTo;
-            return expirationDate > DateTime.UtcNow;
+            return jwtToken.ValidTo > DateTime.UtcNow;
         }
         catch
         {
@@ -89,11 +89,8 @@
         {
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
-
-            var role = jwtToken.Claims
-                .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
-
-            return role;
+            return jwtToken.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
         }
         catch
         {
