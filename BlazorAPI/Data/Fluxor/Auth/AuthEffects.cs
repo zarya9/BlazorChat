@@ -1,6 +1,7 @@
-﻿using BlazorAPI.Data.Utilities;
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using Fluxor;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace BlazorAPI.Data.Fluxor.Auth
 {
@@ -26,45 +27,24 @@ namespace BlazorAPI.Data.Fluxor.Auth
                     action.Password
                 });
 
-                if (response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode)
                 {
-                    var token = await response.Content.ReadAsStringAsync();
-
-                    if (!JwtParser.IsTokenValid(token))
-                    {
-                        dispatcher.Dispatch(new LoginFailedAction { Error = "Токен невалиден" });
-                        return;
-                    }
-
-                    var role = JwtParser.GetRoleFromToken(token);
-                    if (string.IsNullOrEmpty(role))
-                    {
-                        dispatcher.Dispatch(new LoginFailedAction { Error = "Роль не найдена в токене" });
-                        return;
-                    }
-
-                    await _localStorage.SetItemAsync("authToken", token);
-
-                    dispatcher.Dispatch(new LoginSuccessAction
-                    {
-                        Token = token,
-                        Role = role
-                    });
+                    dispatcher.Dispatch(new LoginFailedAction { Error = "Ошибка входа" });
+                    return;
                 }
-                else
-                {
-                    dispatcher.Dispatch(new LoginFailedAction
-                    {
-                        Error = await response.Content.ReadAsStringAsync() ?? "Неверный email или пароль"
-                    });
-                }
+
+                var token = await response.Content.ReadAsStringAsync();
+                var handler = new JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(token);
+
+                var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+                await _localStorage.SetItemAsync("authToken", token);
+                dispatcher.Dispatch(new LoginSuccessAction { Token = token, Role = role });
             }
             catch (Exception ex)
             {
-                dispatcher.Dispatch(new LoginFailedAction
-                {
-                    Error = $"Ошибка сервера: {ex.Message}"
-                });
+                dispatcher.Dispatch(new LoginFailedAction { Error = ex.Message });
             }
         }
     }
