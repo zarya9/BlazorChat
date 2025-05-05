@@ -4,6 +4,9 @@
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotificationService NotificationService
+@inject IDispatcher Dispatcher
+@using BlazorAPI.ApiRequest.Model
+@using Fluxor
 @using Microsoft.AspNetCore.Components.Routing
 @using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Components.Authorization
@@ -274,63 +277,31 @@
         }
     }
 
-    private async Task HandleLogin()
-    {
-        isLoading = true;
-        errorMessage = null;
-
-        try
+    @code {
+        private async Task HandleLogin()
         {
-            var httpClient = HttpClientFactory.CreateClient("UnauthorizedClient");
-            var response = await httpClient.PostAsJsonAsync("api/UserLogin/Login", loginRequest);
+            isLoading = true;
+            errorMessage = null;
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-                if (result != null && !string.IsNullOrEmpty(result.Token))
+                Dispatcher.Dispatch(new Logins
                 {
-                    await LocalStorage.SetItemAsync("authToken", result.Token);
-                    await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserAuthentication(result.Token);
-
-                    currentUserRole = GetUserRoleFromToken(result.Token);
-
-                    NotificationService.ShowSuccess("Авторизация прошла успешно!");
-
-                    await Task.Delay(2000); 
-
-                    if (currentUserRole == "Администратор")
-                    {
-                        Navigation.NavigateTo("/users");
-                    }
-                    else
-                    {
-                        Navigation.NavigateTo("/profile");
-                    }
-                }
-                else
-                {
-                    errorMessage = "Токен отсутствует в ответе.";
-                    NotificationService.ShowError("Токен отсутствует в ответе.");
-                }
+                    Email = loginRequest.Email,
+                    Password = loginRequest.Password
+                });
             }
-            else
+            catch (Exception ex)
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                NotificationService.ShowError("Ошибка авторизации.");
+                errorMessage = "Произошла ошибка при авторизации.";
+                Console.WriteLine(ex.ToString());
             }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Произошла ошибка при авторизации.";
-            NotificationService.ShowError("Произошла ошибка при авторизации.");
-            Console.WriteLine(ex.ToString());
-        }
-        finally
-        {
-            isLoading = false;
+            finally
+            {
+                isLoading = false;
+            }
         }
     }
-
     private bool IsTokenValid(string token)
     {
         try

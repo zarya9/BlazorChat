@@ -2,11 +2,11 @@
 
 namespace BlazorAPI.Data.Fluxor.Auth
 {
-    public class AuthReducers
+    public static class AuthReducers
     {
         [ReducerMethod]
         public static AuthState OnLogin(AuthState state, LoginAction action)
-    => state with { IsLoading = true };
+            => state with { IsLoading = true };
 
         [ReducerMethod]
         public static AuthState OnLoginSuccess(AuthState state, LoginSuccessAction action)
@@ -15,7 +15,8 @@ namespace BlazorAPI.Data.Fluxor.Auth
                 IsLoading = false,
                 IsAuthenticated = true,
                 Token = action.Token,
-                Role = action.Role
+                Role = action.Role,
+                Error = null
             };
 
         [ReducerMethod]
@@ -25,5 +26,9 @@ namespace BlazorAPI.Data.Fluxor.Auth
                 IsLoading = false,
                 Error = action.Error
             };
+
+        [ReducerMethod]
+        public static AuthState OnUpdateUrl(AuthState state, UpdateLastUrlAction action)
+            => state with { LastVisitedUrl = action.Url };
     }
 }

@@ -1,4 +1,8 @@
-﻿
+﻿@using BlazorAPI.Data.Fluxor.Auth
+@using Fluxor
+@inject IDispatcher Dispatcher
+@inject NavigationManager Navigation
+
 @code {
     private bool collapseNavMenu = true;
 
@@ -7,5 +11,12 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += (_, args) =>
+        {
+            Dispatcher.Dispatch(new UpdateLastUrlAction { Url = args.Location });
+        };
     }
 }

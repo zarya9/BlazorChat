@@ -4,6 +4,7 @@ using BlazorAPI.ApiRequest;
 using BlazorAPI.Hubs;
 using Fluxor;
 using Fluxor.Blazor.Web.ReduxDevTools;
+using BlazorAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +21,7 @@ builder.Services.AddSignalR(options =>
 });
 
 builder.Services.AddBlazoredLocalStorage();
-
+builder.Services.AddFluxorConfig();
 builder.Services.AddFluxor(options =>
 {
     options.ScanAssemblies(typeof(Program).Assembly);
