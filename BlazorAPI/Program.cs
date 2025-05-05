@@ -3,13 +3,12 @@ using Microsoft.AspNetCore.Components.Authorization;
 using BlazorAPI.ApiRequest;
 using BlazorAPI.Hubs;
 using Fluxor;
-using Fluxor.Blazor.Persistence;
 using BlazorAPI;
+using Fluxor.Blazor.Web.ReduxDevTools;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.RootComponents.Add<App>("#app");
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor()
+builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents(); builder.Services.AddServerSideBlazor()
     .AddCircuitOptions(options =>
     {
         options.DetailedErrors = true;
@@ -24,15 +23,13 @@ builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddFluxor(options =>
 {
-    options.ScanAssemblies(typeof(Program).Assembly)
-    .UseRouting()
-    .UsePersistence();
+    options.ScanAssemblies(typeof(Program).Assembly);
+    options.UseReduxDevTools();
 });
 builder.Services.AddFluxorConfig();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<MovieService>();
-builder.Services.AddScoped<IPersistenceMiddleware, LocalStorageMiddleware>();
 
 builder.Services.AddHttpClient("UnauthorizedClient", client =>
 {
@@ -62,14 +59,16 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-
+builder.Services.AddRazorPages();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -84,5 +83,6 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<ChatHub>("/chatHub");
     endpoints.MapFallbackToPage("/_Host");
 });
-
+//app.MapRazorComponents<App>()
+//   .AddInteractiveServerRenderMode();
 app.Run();
