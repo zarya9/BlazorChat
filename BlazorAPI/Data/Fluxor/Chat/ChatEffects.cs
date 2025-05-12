@@ -22,22 +22,20 @@ namespace BlazorAPI.Data.Fluxor.Chat
         {
             try
             {
-                // Получаем токен из LocalStorage
                 var token = await _localStorage.GetItemAsync<string>("authToken");
-                var userId = GetUserIdFromToken(token); // Извлекаем ID пользователя
+                var userId = GetUserIdFromToken(token);
 
                 if (string.IsNullOrEmpty(userId))
                 {
                     throw new Exception("User ID not found in token");
                 }
 
-                // Используем userId в запросе
                 var messages = await _http.GetFromJsonAsync<List<ChatMessage>>($"/api/Chat/dialogs/{userId}");
                 dispatcher.Dispatch(new LoadMessagesSuccessAction { Messages = messages });
             }
             catch (Exception ex)
             {
-                // Обработка ошибок
+                dispatcher.Dispatch(new LoadMessagesFailedAction { Error = ex.Message });
                 dispatcher.Dispatch(new LoadMessagesFailedAction { Error = ex.Message });
             }
         }

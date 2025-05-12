@@ -47,13 +47,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Сначала проверяем сохраненный URL
         var lastUrl = await LocalStorage.GetItemAsync<string>("last_url");
         var token = await LocalStorage.GetItemAsync<string>("authToken");
 
         if (!string.IsNullOrEmpty(token) && IsTokenValid(token))
         {
-            // Если есть сохраненный URL - используем его
             if (!string.IsNullOrEmpty(lastUrl))
             {
                 Console.WriteLine($"Восстановление последнего URL: {lastUrl}");
@@ -61,7 +59,6 @@
             }
             else
             {
-                // Иначе - редирект по роли
                 var role = GetUserRoleFromToken(token);
                 var defaultPath = role == "Администратор" ? "/users" : "/profile";
                 Console.WriteLine($"Перенаправление по роли: {defaultPath}");
