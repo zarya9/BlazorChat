@@ -1,22 +1,30 @@
-﻿@using BlazorAPI.Data.Fluxor.Auth
-@using Fluxor
-@inject IDispatcher Dispatcher
-@inject NavigationManager Navigation
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">BlazorApp1</a>
+    </div>
+</div>
 
-@code {
-    private bool collapseNavMenu = true;
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
 
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-    protected override void OnInitialized()
-    {
-        Navigation.LocationChanged += (_, args) =>
-        {
-            Dispatcher.Dispatch(new UpdateLastUrlAction { Url = args.Location });
-        };
-    }
-}
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="weather">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

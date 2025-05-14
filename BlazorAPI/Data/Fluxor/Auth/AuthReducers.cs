@@ -5,30 +5,14 @@ namespace BlazorAPI.Data.Fluxor.Auth
     public static class AuthReducers
     {
         [ReducerMethod]
-        public static AuthState OnLogin(AuthState state, LoginAction action)
-            => state with { IsLoading = true };
+        public static AuthState ReduceSetJwtTokenAction(AuthState state, SetJwtTokenAction action) =>
+    new AuthState(action.JwtToken, !string.IsNullOrEmpty(action.JwtToken));
 
-        [ReducerMethod]
-        public static AuthState OnLoginSuccess(AuthState state, LoginSuccessAction action)
-            => state with
-            {
-                IsLoading = false,
-                IsAuthenticated = true,
-                Token = action.Token,
-                Role = action.Role,
-                Error = null
-            };
-
-        [ReducerMethod]
-        public static AuthState OnLoginFailed(AuthState state, LoginFailedAction action)
-            => state with
-            {
-                IsLoading = false,
-                Error = action.Error
-            };
-
-        [ReducerMethod]
-        public static AuthState OnUpdateUrl(AuthState state, UpdateLastUrlAction action)
-            => state with { LastVisitedUrl = action.Url, LastUpdated = action.Timestamp };
+        [ReducerMethod(typeof(ClearJwtTokenAction))]
+        public static AuthState ReduceClearJwtTokenAction(AuthState state) =>
+            new AuthState(null, false);
     }
+    public record SetJwtTokenAction(string JwtToken);
+
+    public record ClearJwtTokenAction();
 }

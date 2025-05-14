@@ -1,27 +1,23 @@
-﻿using Fluxor;
+﻿using BlazorAPI.ApiRequest.Model;
+using Fluxor;
 
 namespace BlazorAPI.Data.Fluxor.Auth
 {
     [Serializable]
     public record AuthState
     {
-        public bool IsLoading { get; init; }
-        public bool IsAuthenticated { get; init; }
-        public string Token { get; init; }
-        public string Role { get; init; }
-        public string Error { get; init; }
-        public string LastVisitedUrl { get; init; }
-        public DateTime LastUpdated { get; init; }
+        public string JwtToken { get; init; }
+        public bool IsAuthenticated { get; }
+        public string Role { get; init; } 
 
-        public static AuthState Empty => new()
+        public static AuthState Empty => new AuthState();
+        public AuthState(string jwtToken, bool isAuthenticated, string role = null)
         {
-            IsLoading = false,
-            IsAuthenticated = false,
-            Token = null,
-            Role = null,
-            Error = null,
-            LastVisitedUrl = "/",
-            LastUpdated = DateTime.MinValue
-        };
+            JwtToken = jwtToken;
+            IsAuthenticated = isAuthenticated;
+            Role = role;
+        }
+
+        public AuthState() : this(null, false) { }
     }
 }

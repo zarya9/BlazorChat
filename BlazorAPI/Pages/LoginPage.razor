@@ -285,11 +285,55 @@
     @code {
         private async Task HandleLogin()
         {
-            Dispatcher.Dispatch(new LoginAction
+            isLoading = true;
+            errorMessage = null;
+
+            try
             {
-                Email = loginRequest.Email,
-                Password = loginRequest.Password
-            });
+                var httpClient = HttpClientFactory.CreateClient("UnauthorizedClient");
+                var response = await httpClient.PostAsJsonAsync("api/UserLogin/Login", loginRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                    if (result != null && !string.IsNullOrEmpty(result.Token))
+                    {
+                        // await LocalStorage.SetItemAsync("authToken", result.Token);
+                        Dispatcher.Dispatch(new SetJwtTokenAction(result.Token));
+                        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserAuthentication(result.Token);
+
+                        currentUserRole = GetUserRoleFromToken(result.Token);
+
+                        NotificationService.ShowSuccess("Авторизация прошла успешно!");
+
+                        Console.WriteLine("Waiting 2 seconds before navigation...");
+                        await Task.Delay(2000);
+                        Console.WriteLine(result.Token);
+                        Navigation.NavigateTo("/movies");
+                    }
+                    else
+                    {
+                        errorMessage = "Токен отсутствует в ответе.";
+                        NotificationService.ShowError("Токен отсутствует в ответе.");
+                    }
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    errorMessage = "Неверный email или пароль";
+                    NotificationService.ShowError("Ошибка авторизации");
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "Произошла ошибка при авторизации";
+                NotificationService.ShowError("Произошла ошибка при авторизации");
+                Console.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                isLoading = false;
+            }
         }
     }
     private bool IsTokenValid(string token)
