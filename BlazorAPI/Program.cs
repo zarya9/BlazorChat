@@ -1,4 +1,4 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using BlazorAPI.ApiRequest;
 using BlazorAPI.Hubs;
@@ -7,16 +7,16 @@ using BlazorAPI;
 using Fluxor.Blazor.Web.ReduxDevTools;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents(); builder.Services.AddServerSideBlazor()
-    .AddCircuitOptions(options =>
-    {
-        options.DetailedErrors = true;
-    });
 
-builder.Services.AddSignalR(options =>
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+builder.Services.AddServerSideBlazor()
+    .AddCircuitOptions(options => options.DetailedErrors = true);
+
+builder.Services.AddSignalR(hubOptions =>
 {
-    options.EnableDetailedErrors = true;
+    hubOptions.EnableDetailedErrors = true;
 });
 
 builder.Services.AddBlazoredLocalStorage();
@@ -27,6 +27,7 @@ builder.Services.AddFluxor(options =>
     options.UseReduxDevTools();
 });
 builder.Services.AddFluxorConfig();
+
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<MovieService>();
@@ -39,13 +40,7 @@ builder.Services.AddHttpClient("UnauthorizedClient", client =>
 builder.Services.AddHttpClient("AuthorizedClient", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5256");
-})
-.AddHttpMessageHandler<AuthorizationMessageHandler>();
-
-//builder.Services.AddScoped(sp => new HttpClient
-//{
-//    BaseAddress = new Uri("http://localhost:5256")
-//});
+}).AddHttpMessageHandler<AuthorizationMessageHandler>();
 
 builder.Services.AddTransient<AuthorizationMessageHandler>();
 
@@ -59,16 +54,20 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+
 builder.Services.AddRazorPages();
+
 var app = builder.Build();
 
-app.UseHttpsRedirection(); 
-app.UseStaticFiles(); 
-if (!app.Environment.IsDevelopment()) 
-{ 
-    app.UseExceptionHandler("/Error"); 
-    app.UseHsts(); 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
+
 app.UseRouting();
 
 app.UseCors("AllowAll");
@@ -76,12 +75,8 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapBlazorHub();
-    endpoints.MapHub<ChatHub>("/chatHub");
-    endpoints.MapFallbackToPage("/_Host");
-});
-app.MapRazorComponents<App>()
-   .AddInteractiveServerRenderMode();
+app.MapHub<ChatHub>("/chatHub");
+
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+
 app.Run();
