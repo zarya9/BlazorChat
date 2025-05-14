@@ -298,36 +298,32 @@
                     var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
                     if (result != null && !string.IsNullOrEmpty(result.Token))
                     {
-                        // await LocalStorage.SetItemAsync("authToken", result.Token);
-                        Dispatcher.Dispatch(new SetJwtTokenAction(result.Token));
+                        var role = GetUserRoleFromToken(result.Token);
+
+                        // Обновляем состояние через Fluxor
+                        Dispatcher.Dispatch(new SetJwtTokenAction(result.Token, role));
                         await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserAuthentication(result.Token);
 
-                        currentUserRole = GetUserRoleFromToken(result.Token);
-
                         NotificationService.ShowSuccess("Авторизация прошла успешно!");
-
-                        Console.WriteLine("Waiting 2 seconds before navigation...");
                         await Task.Delay(2000);
-                        Console.WriteLine(result.Token);
-                        Navigation.NavigateTo("/movies");
+                        Navigation.NavigateTo(role == "Admin" ? "/users" : "/movies");
                     }
                     else
                     {
                         errorMessage = "Токен отсутствует в ответе.";
-                        NotificationService.ShowError("Токен отсутствует в ответе.");
+                        NotificationService.ShowError(errorMessage);
                     }
                 }
                 else
                 {
-                    var errorContent = await response.Content.ReadAsStringAsync();
                     errorMessage = "Неверный email или пароль";
-                    NotificationService.ShowError("Ошибка авторизации");
+                    NotificationService.ShowError(errorMessage);
                 }
             }
             catch (Exception ex)
             {
                 errorMessage = "Произошла ошибка при авторизации";
-                NotificationService.ShowError("Произошла ошибка при авторизации");
+                NotificationService.ShowError(errorMessage);
                 Console.WriteLine(ex.ToString());
             }
             finally

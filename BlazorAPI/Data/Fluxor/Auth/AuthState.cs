@@ -1,23 +1,22 @@
-﻿using BlazorAPI.ApiRequest.Model;
-using Fluxor;
+﻿using Fluxor;
 
 namespace BlazorAPI.Data.Fluxor.Auth
 {
-    [Serializable]
+    [FeatureState(CreateInitialStateMethodName = nameof(CreateInitialState))]
     public record AuthState
     {
         public string JwtToken { get; init; }
-        public bool IsAuthenticated { get; }
-        public string Role { get; init; } 
+        public bool IsAuthenticated { get; init; }
+        public string Role { get; init; }
 
-        public static AuthState Empty => new AuthState();
-        public AuthState(string jwtToken, bool isAuthenticated, string role = null)
+        public static AuthState CreateInitialState()
         {
-            JwtToken = jwtToken;
-            IsAuthenticated = isAuthenticated;
-            Role = role;
+            return new AuthState
+            {
+                JwtToken = null,
+                IsAuthenticated = false,
+                Role = null
+            };
         }
-
-        public AuthState() : this(null, false) { }
     }
 }

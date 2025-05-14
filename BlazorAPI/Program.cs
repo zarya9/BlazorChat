@@ -1,16 +1,22 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using BlazorAPI.ApiRequest;
-using Microsoft.AspNetCore.Authentication.Cookies; 
+using Microsoft.AspNetCore.Authentication.Cookies;
 using BlazorAPI.Hubs;
 using Fluxor;
 using BlazorAPI;
 using Fluxor.Blazor.Web.ReduxDevTools;
 
-
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "auth_cookie";
+        options.LoginPath = "/login";
+        options.AccessDeniedPath = "/access-denied";
+    });
 
-// Добавление сервисов
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -29,7 +35,7 @@ builder.Services.AddFluxor(options =>
     options.UseReduxDevTools();
 });
 
-// Другие сервисы...
+// Кастомный провайдер аутентификации
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<MovieService>();
@@ -60,6 +66,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -67,6 +74,22 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+// Важно: UseAuthentication ДО UseAuthorization
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseCors("AllowAll");
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+app.MapHub<ChatHub>("/chatHub");
+
+app.Run();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowAll");
