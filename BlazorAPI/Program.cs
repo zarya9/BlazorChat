@@ -42,10 +42,10 @@ builder.Services.AddHttpClient("AuthorizedClient", client =>
 })
 .AddHttpMessageHandler<AuthorizationMessageHandler>();
 
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri("http://localhost:5256")
-});
+//builder.Services.AddScoped(sp => new HttpClient
+//{
+//    BaseAddress = new Uri("http://localhost:5256")
+//});
 
 builder.Services.AddTransient<AuthorizationMessageHandler>();
 
@@ -62,14 +62,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddRazorPages();
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
+app.UseHttpsRedirection(); 
+app.UseStaticFiles(); 
+if (!app.Environment.IsDevelopment()) 
+{ 
+    app.UseExceptionHandler("/Error"); 
+    app.UseHsts(); 
 }
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors("AllowAll");
