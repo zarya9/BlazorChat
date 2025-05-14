@@ -83,6 +83,6 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<ChatHub>("/chatHub");
     endpoints.MapFallbackToPage("/_Host");
 });
-//app.MapRazorComponents<App>()
-//   .AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>()
+   .AddInteractiveServerRenderMode();
 app.Run();
